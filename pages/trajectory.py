@@ -66,12 +66,10 @@ class TrajectoryPage(Page):
         self.arc_pts = []
         steps = 240
         for i in range(steps + 1):
-            frac     = i / steps
-            t        = frac * loop_dur
-            alt, _, _ = interpolate(events, t)
-            x        = left + (right - left) * frac
-            alt_frac = min(alt / apex, 1.0)
-            y        = baseline - (baseline - top) * alt_frac
+            frac = i / steps
+            t    = frac * loop_dur
+            x    = left + (right - left) * frac
+            y    = baseline - (baseline - top) * math.sin(frac * math.pi / 2)
             self.arc_pts.append((x, y, t))
 
         # Precomputed time list for O(log n) marker lookup
@@ -112,8 +110,8 @@ class TrajectoryPage(Page):
         for alt_km in (50, 100, 150):
             if alt_km >= self._apex_km:
                 continue
-            frac  = alt_km / self._apex_km
-            ref_y = int(self._baseline - (self._baseline - self._arc_top) * frac)
+            vis_frac = math.sin((alt_km / self._apex_km) * math.pi / 2)
+            ref_y    = int(self._baseline - (self._baseline - self._arc_top) * vis_frac)
             pygame.draw.line(screen, config.COL_GRID,
                              (self._arc_left, ref_y), (self._arc_right, ref_y), 1)
             text(screen, self.fonts.tiny, f"{alt_km}km",

@@ -41,12 +41,14 @@ class SchedulePage(Page):
 
     def __init__(self, app):
         super().__init__(app)
-        self.schedule = data.get_schedule()
+        self.schedule    = data.get_schedule()
+        self._row_rects  = []   # list of (pygame.Rect, mission_dict)
 
     def on_enter(self):
         self.schedule = data.get_schedule()
 
     def draw(self, screen):
+        self._row_rects = []
         grid(screen, self.w, self.h, self.s)
 
         text(screen, self.fonts.big,  "LAUNCH SCHEDULE", self.pad, self.pad, config.COL_TEXT)
@@ -90,4 +92,17 @@ class SchedulePage(Page):
                  cols_x[2], row_y, vcol)
             text(screen, self.fonts.small, truncate(m.get("pad", ""), 18),
                  cols_x[3], row_y, config.COL_DIM)
+            row_rect = pygame.Rect(
+                self.pad - int(4 * self.s), row_y - int(2 * self.s),
+                self.w - self.pad * 2 + int(8 * self.s), row_h - int(2 * self.s),
+            )
+            self._row_rects.append((row_rect, m))
             row_y += row_h
+
+    def handle_tap(self, pos) -> bool:
+        for rect, mission in self._row_rects:
+            if rect.collidepoint(pos):
+                self.app.selected_mission = mission
+                self.app.goto_named("COUNTDOWN")
+                return True
+        return False

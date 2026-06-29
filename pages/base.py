@@ -29,5 +29,8 @@ class Page:
     def handle_tap(self, pos) -> bool:
         return False
 
+    def handle_drag(self, pos) -> bool:
+        return False
+
     def handle_button(self, name) -> bool:
         return False

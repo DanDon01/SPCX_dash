@@ -23,7 +23,11 @@ class CountdownPage(Page):
         self.mission = data.get_next_mission()
 
     def on_enter(self):
-        self.mission = data.get_next_mission()
+        if getattr(self.app, "selected_mission", None) is not None:
+            self.mission = self.app.selected_mission
+            self.app.selected_mission = None
+        else:
+            self.mission = data.get_next_mission()
 
     def draw(self, screen):
         grid(screen, self.w, self.h, self.s)
@@ -75,3 +79,7 @@ class CountdownPage(Page):
             text(screen, self.fonts.tiny,
                  truncate(m["payload_desc"], 64),
                  self.w // 2, dy + lh * 2, config.COL_DIM, center=True)
+
+    def handle_tap(self, pos) -> bool:
+        self.app.goto_named("TRAJECTORY")
+        return True

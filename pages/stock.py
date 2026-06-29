@@ -27,10 +27,16 @@ class StockPage(Page):
         super().__init__(app)
         self.stock         = data.get_stock()
         self._chart_cache  = None   # (series_key, pts, poly)
+        self.range_24h     = True
 
     def on_enter(self):
         self.stock        = data.get_stock()
         self._chart_cache = None    # force rebuild on next draw
+
+    def handle_tap(self, pos) -> bool:
+        self.range_24h    = not self.range_24h
+        self._chart_cache = None
+        return True
 
     # --- chart helpers ----------------------------------------------------
     def _get_chart_pts(self, series, rect):
@@ -129,9 +135,12 @@ class StockPage(Page):
         chart = pygame.Rect(self.pad, int(self.h * 0.52),
                             self.w - self.pad * 2, int(self.h * 0.40))
         pygame.draw.rect(screen, config.COL_LINE, chart, 1)
-        text(screen, self.fonts.tiny, "24H",
+        full_series  = s.get("series", [])
+        series_data  = full_series[-78:] if self.range_24h else full_series
+        chart_label  = "24H (tap)" if self.range_24h else "FULL (tap)"
+        text(screen, self.fonts.tiny, chart_label,
              chart.left + int(6 * self.s), chart.top + int(4 * self.s), config.COL_DIM)
-        self._draw_chart(screen, s.get("series", []), chart, up)
+        self._draw_chart(screen, series_data, chart, up)
 
         if s.get("stale"):
             text(screen, self.fonts.tiny, "CACHED · OFFLINE",
